@@ -26,10 +26,27 @@ class InfluxLPR:
         self.queue.put(InfluxLine(key, value, *tags))
 
     def _print_task(self) -> None:
+        data: dict[str, tuple[tuple[str, Any], ...]] = {}	# dictionary identifier -> tags
         try:
             while True:
                 line = self.queue.get(block=True)
+                tagDictionary = dict(line.tags)	# convert the list of 2-tuples into a dictionary to get the identifiers
+                identifier = str(tagDictionary.get("objectInstanceNumber")) + "_" + str(tagDictionary.get("deviceIdentifier"))
+
+                if line.key != "presentValue":
+                    if identifier in data:
+                        data[identifier] += ((line.key, line.value),)
+                    else:
+                        data[identifier] = ((line.key, line.value),)
+                    continue
+                
+				# if line.key == "presentValue"
+                if identifier not in data:
+                    data[identifier] = ()    # to make sure identifier is a key in data
+                
+                line.tags += data[identifier]
                 self._print_influx_line(line)
+                data.pop(identifier)
         except KeyboardInterrupt:
             pass
 
