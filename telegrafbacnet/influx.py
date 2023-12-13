@@ -33,14 +33,13 @@ class InfluxLPR:
                 tagDictionary = dict(line.tags)	# convert the list of 2-tuples into a dictionary to get the identifiers
                 identifier = str(tagDictionary.get("objectInstanceNumber")) + "_" + str(tagDictionary.get("deviceIdentifier"))
 
-                if line.key != "presentValue":
-                    if identifier in data:
-                        data[identifier] += ((line.key, line.value),)
-                    else:
-                        data[identifier] = ((line.key, line.value),)
-                    continue
+              if line.key != "presentValue":
+                if identifier in data:
+                    data[identifier] += ((line.key, line.value.replace(" ","\\ ")),)
+                else:
+                    data[identifier] = ((line.key, line.value.replace(" ","\\ ")),)
+                continue
                 
-				# if line.key == "presentValue"
                 if identifier not in data:
                     data[identifier] = ()    # to make sure identifier is a key in data
                 
